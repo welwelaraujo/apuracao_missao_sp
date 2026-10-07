@@ -1,0 +1,358 @@
+<title>Mapa da Missão SP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/*__LEAFLET_CSS__*/
+:root{
+  --bg:#F2F4F7; --surface:#FFFFFF; --sunk:#E8ECF1; --ink:#161D29; --muted:#5A6476; --line:#D7DCE4;
+  --accent:#C2410C; --a:#D9480F; --b:#1864AB; --both:#7B2CBF; --mapfill:#E9EDF2; --mapline:#B9C2CE;
+  --font-d:"Archivo","Helvetica Neue",Arial,sans-serif; --font-b:"IBM Plex Sans","Segoe UI",Arial,sans-serif; --font-m:"IBM Plex Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  color-scheme:dark; --bg:#10141B; --surface:#171D26; --sunk:#1E2530; --ink:#E4E8EE; --muted:#97A1B2; --line:#2A3340;
+  --accent:#F08C4A; --a:#FF8A3D; --b:#4DABF7; --both:#B983FF; --mapfill:#1A212B; --mapline:#3A4555;}}
+:root[data-theme="dark"]{
+  color-scheme:dark; --bg:#10141B; --surface:#171D26; --sunk:#1E2530; --ink:#E4E8EE; --muted:#97A1B2; --line:#2A3340;
+  --accent:#F08C4A; --a:#FF8A3D; --b:#4DABF7; --both:#B983FF; --mapfill:#1A212B; --mapline:#3A4555;}
+*{box-sizing:border-box} [hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-b);font-size:14px;line-height:1.45;padding-inline:16px;padding-block:18px 28px}
+.wrap{max-width:1440px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+h1{font-family:var(--font-d);font-weight:800;font-size:28px;letter-spacing:-.01em;margin:0;text-wrap:balance}
+h1 span{color:var(--accent)}
+.sub{color:var(--muted);font-size:12.5px;margin:4px 0 0}
+.tabs{display:flex;background:var(--sunk);border-radius:8px;padding:3px;gap:2px}
+.tabs button,.seg button{font:inherit;font-weight:600;border:0;background:transparent;color:var(--muted);padding:7px 14px;border-radius:6px;cursor:pointer}
+.tabs button[aria-pressed="true"],.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.ctl{display:flex;flex-direction:column;gap:4px;min-width:0}
+.ctl label,.lab{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.seg{display:flex;background:var(--sunk);border-radius:7px;padding:2px;gap:2px;flex-wrap:wrap}
+.seg button{padding:5px 10px;font-size:13px}
+select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 8px;max-width:min(380px,82vw)}
+input[type=range]{accent-color:var(--accent);width:120px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.kpi b{display:block;font-family:var(--font-m);font-weight:500;font-size:22px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.kpi small{color:var(--muted);font-size:12px}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:14px;align-items:start}
+@media (max-width:980px){.main{grid-template-columns:1fr}}
+.mapbox{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--mapfill)}
+#map{height:min(78vh,760px);min-height:420px;background:var(--mapfill)}
+.legend{position:absolute;left:10px;bottom:10px;z-index:500;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;display:flex;flex-direction:column;gap:5px;max-width:260px}
+.ramp{height:9px;border-radius:5px;background:linear-gradient(90deg,#3B5BDB00,#4C6EF5,#20C997,#FAB005,#F76707,#C92A2A)}
+.ramp-l{display:flex;justify-content:space-between;color:var(--muted);font-family:var(--font-m);font-size:11px}
+.dots{display:flex;gap:10px;flex-wrap:wrap}.dots i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+.side{display:flex;flex-direction:column;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.card h2{font-family:var(--font-d);font-weight:700;font-size:15px;margin:0 0 8px}
+.list{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:22px minmax(0,1fr) auto auto;gap:8px;align-items:baseline;padding:5px 2px;border-top:1px solid var(--line);cursor:pointer;background:none;border-left:0;border-right:0;border-bottom:0;font:inherit;color:inherit;text-align:left;width:100%}
+.row:hover{background:var(--sunk)}
+.row .n{color:var(--muted);font-family:var(--font-m);font-size:11px}
+.row .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .t small{display:block;color:var(--muted);font-size:11.5px;overflow:hidden;text-overflow:ellipsis}
+.num{font-family:var(--font-m);font-variant-numeric:tabular-nums;text-align:right;font-size:12.5px}
+.num.m{color:var(--muted)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:var(--sunk);border-radius:8px;padding:8px 10px}
+.stat b{display:block;font-family:var(--font-m);font-size:20px;font-weight:500}
+.stat small{color:var(--muted);font-size:11.5px}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--sunk);color:var(--muted)}
+.pill.hi{background:color-mix(in srgb,var(--both) 22%,transparent);color:var(--both)}
+.pill.md{background:color-mix(in srgb,var(--a) 20%,transparent);color:var(--a)}
+#scatter{width:100%;height:240px;display:block}
+.note{color:var(--muted);font-size:12px;margin:6px 0 0;max-width:65ch}
+.who{display:flex;flex-direction:column;gap:4px;font-size:13px}
+.who i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.leaflet-container{font-family:var(--font-b);background:var(--mapfill)}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--surface);color:var(--ink)}
+.leaflet-popup-content{margin:10px 12px;font-size:12.5px;line-height:1.4}
+.pp b{font-family:var(--font-d)} .pp table{border-collapse:collapse;margin-top:4px} .pp td{padding:1px 6px 1px 0} .pp td.num{padding-left:8px}
+.leaflet-bar a{background:var(--surface);color:var(--ink);border-color:var(--line)}
+footer{color:var(--muted);font-size:11.5px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Votos da <span>Missão</span> em São Paulo</h1>
+      <p class="sub">Eleições 2026 · 1º turno (04/10) · votação por local de votação (escola), TSE · <span id="nloc"></span> locais</p>
+    </div>
+    <div class="tabs" role="group" aria-label="Modo">
+      <button id="t-dist" aria-pressed="true">Distribuição</button>
+      <button id="t-comp" aria-pressed="false">Comparar candidatos</button>
+    </div>
+  </header>
+
+  <section class="controls" id="c-dist">
+    <div class="ctl"><span class="lab">Cargo</span>
+      <div class="seg" id="cargo">
+        <button data-v="6" aria-pressed="true">Dep. Federal</button><button data-v="7" aria-pressed="false">Dep. Estadual</button><button data-v="5" aria-pressed="false">Senado</button><button data-v="all" aria-pressed="false">Deputados (ambos)</button>
+      </div></div>
+    <div class="ctl"><label for="cand">Candidato</label><select id="cand"></select></div>
+    <div class="ctl"><span class="lab">Medida</span>
+      <div class="seg" id="metric"><button data-v="v" aria-pressed="true">Votos</button><button data-v="p" aria-pressed="false">% dos válidos</button></div></div>
+    <div class="ctl"><label for="rad">Raio do calor</label><input type="range" id="rad" min="8" max="40" value="18"></div>
+  </section>
+
+  <section class="controls" id="c-comp" hidden>
+    <div class="ctl"><label for="ca">Candidato A (Missão)</label><select id="ca"></select></div>
+    <div class="ctl"><label for="cb">Candidato B</label><select id="cb"></select></div>
+    <div class="ctl"><span class="lab">Mapa</span>
+      <div class="seg" id="cmode"><button data-v="both" aria-pressed="true">Onde os dois são fortes</button><button data-v="a" aria-pressed="false">Só A</button><button data-v="b" aria-pressed="false">Só B</button></div></div>
+    <div class="ctl"><label for="rad2">Raio do calor</label><input type="range" id="rad2" min="8" max="40" value="18"></div>
+  </section>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="main">
+    <div class="mapbox">
+      <div id="map" role="img" aria-label="Mapa de calor dos votos por local de votação no estado de São Paulo"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <aside class="side" id="side"></aside>
+  </div>
+  <footer>Fonte: TSE, dados abertos: votação por seção eleitoral SP 2026 e eleitorado por local de votação 2026; contornos municipais: IBGE. Aproxime o mapa (zoom ≥ 11) para ver cada escola como um círculo clicável. <span id="apx"></span></footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
+<script type="application/json" id="data">__DATA__</script>
+<script type="application/json" id="geo">__GEO__</script>
+<script>
+(function(){
+const D = JSON.parse(document.getElementById('data').textContent);
+const GEO = JSON.parse(document.getElementById('geo').textContent);
+const LOCS = D.locs, NL = LOCS.length, C = D.cands;
+const CN = {'6':'Dep. Federal','7':'Dep. Estadual','5':'Senado'};
+const CNs = {'6':'F','7':'E','5':'S'};
+const fmt = n => Math.round(n).toLocaleString('pt-BR');
+const pct = (x,d=2) => (x*100).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})+'%';
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+document.getElementById('nloc').textContent = fmt(NL);
+const nap = LOCS.filter(l=>l[9]).length;
+document.getElementById('apx').textContent = nap ? `${nap} locais sem coordenadas no cadastro do TSE foram posicionados no centro do município.` : '';
+
+// dense vectors (cached)
+const cache = {};
+function vec(ci){
+  if (cache[ci]) return cache[ci];
+  const a = new Float64Array(NL), c = C[ci]; let p = 0;
+  for (let k=0;k<c.i.length;k++){ p += c.i[k]; a[p] = c.q[k]; }
+  return cache[ci] = a;
+}
+function validVec(cargo){
+  const a = new Float64Array(NL);
+  for (let i=0;i<NL;i++){ const l=LOCS[i]; a[i] = cargo==='6'?l[6]:cargo==='7'?l[7]:cargo==='5'?l[8]:l[6]+l[7]; }
+  return a;
+}
+function sumVec(ids){
+  const a = new Float64Array(NL);
+  ids.forEach(ci => { const v = vec(ci); for (let i=0;i<NL;i++) a[i]+=v[i]; });
+  return a;
+}
+const missaoIds = cargo => C.map((c,i)=>i).filter(i => C[i].m && (cargo==='all' ? (C[i].c==='6'||C[i].c==='7') : C[i].c===cargo));
+function quant(arr, q){ const s = arr.filter(x=>x>0).sort((a,b)=>a-b); return s.length ? s[Math.min(s.length-1, Math.floor(q*s.length))] : 1; }
+
+// ---------- map ----------
+const map = L.map('map', {preferCanvas:true, zoomSnap:.5, minZoom:6}).setView([-22.3,-48.6], 7);
+const canvas = L.canvas({padding:.3});
+const muni = L.geoJSON(GEO, {style:()=>({color:css('--mapline'), weight:.6, fillColor:css('--mapfill'), fillOpacity:1}), interactive:false}).addTo(map);
+map.fitBounds(muni.getBounds(), {padding:[10,10]});
+const heat = L.heatLayer([], {radius:18, blur:15, minOpacity:.08, maxZoom:12,
+  gradient:{.15:'#4C6EF5',.35:'#20C997',.55:'#FAB005',.75:'#F76707',1:'#C92A2A'}}).addTo(map);
+const dots = L.layerGroup().addTo(map);
+let dotSpecs = [];
+function drawDots(){
+  dots.clearLayers();
+  if (map.getZoom() < 11) return;
+  const b = map.getBounds().pad(.2);
+  for (const s of dotSpecs){
+    const l = LOCS[s.i];
+    if (!b.contains([l[0],l[1]])) continue;
+    L.circleMarker([l[0],l[1]], {renderer:canvas, radius:s.r, color:s.col, weight:1, fillColor:s.col, fillOpacity:.55})
+      .on('click', e => L.popup().setLatLng(e.latlng).setContent(s.pop()).openOn(map)).addTo(dots);
+  }
+}
+map.on('zoomend moveend', drawDots);
+new MutationObserver(()=>{ muni.setStyle({color:css('--mapline'), fillColor:css('--mapfill')}); render(); })
+  .observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{ muni.setStyle({color:css('--mapline'), fillColor:css('--mapfill')}); render(); });
+function flyTo(i){ const l = LOCS[i]; map.flyTo([l[0],l[1]], 14, {duration:.8}); }
+function flyMun(m){
+  let la=0, lo=0, n=0; LOCS.forEach(l=>{ if(l[2]===m){ la+=l[0]; lo+=l[1]; n++; } });
+  if (n) map.flyTo([la/n, lo/n], 11.5, {duration:.8});
+}
+
+// ---------- state ----------
+const S = {mode:'dist', cargo:'6', cand:'all', metric:'v', rad:18, ca:null, cb:null, cmode:'both'};
+function seg(id, key, cb){
+  const el = document.getElementById(id);
+  el.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x===b));
+    S[key] = b.dataset.v; cb && cb(); render();
+  });
+}
+seg('cargo','cargo', fillCand); seg('metric','metric'); seg('cmode','cmode');
+document.getElementById('rad').oninput = e => { S.rad=+e.target.value; heat.setOptions({radius:S.rad, blur:S.rad*.8}); };
+document.getElementById('rad2').oninput = e => { S.rad=+e.target.value; heat.setOptions({radius:S.rad, blur:S.rad*.8}); };
+const tabD = document.getElementById('t-dist'), tabC = document.getElementById('t-comp');
+function setMode(m){
+  S.mode = m; tabD.setAttribute('aria-pressed', m==='dist'); tabC.setAttribute('aria-pressed', m==='comp');
+  document.getElementById('c-dist').hidden = m!=='dist'; document.getElementById('c-comp').hidden = m!=='comp';
+  try{ localStorage.setItem('missao-mode', m); }catch(e){}
+  render();
+}
+tabD.onclick = () => setMode('dist'); tabC.onclick = () => setMode('comp');
+
+const candLabel = (ci, withCargo) => { const c = C[ci]; return `${withCargo?CNs[c.c]+' · ':''}${c.n.length>3||c.c==='5'?c.n+' · ':''}${c.nm}${c.m?'':' ('+c.par+')'} — ${fmt(c.v)}`; };
+function fillCand(){
+  const sel = document.getElementById('cand');
+  const ids = missaoIds(S.cargo).sort((a,b)=>C[b].v-C[a].v);
+  sel.innerHTML = `<option value="all">Todos da Missão (${S.cargo==='all'?'deputados':CN[S.cargo]})</option>` +
+    ids.map(i => `<option value="${i}">${esc(candLabel(i, S.cargo==='all'))}</option>`).join('');
+  S.cand = 'all';
+}
+document.getElementById('cand').onchange = e => { S.cand = e.target.value; render(); };
+
+// comparison selects
+const missaoNamed = C.map((c,i)=>i).filter(i => C[i].m && C[i].n.length>2 && D.partners[i]).sort((a,b)=>C[b].v-C[a].v);
+const selA = document.getElementById('ca'), selB = document.getElementById('cb');
+selA.innerHTML = missaoNamed.map(i => `<option value="${i}">${esc(candLabel(i,true))}</option>`).join('');
+function fillB(){
+  const a = +selA.value, ps = D.partners[a] || [];
+  const others = C.map((c,i)=>i).filter(i => C[i].m && i!==a && C[i].c!==C[a].c && C[i].n.length>2 && C[i].v>=300).sort((x,y)=>C[y].v-C[x].v);
+  selB.innerHTML = `<optgroup label="Sugeridos: votação mais parecida (correlação)">` +
+    ps.map(p => `<option value="${p[0]}">${esc(candLabel(p[0],true))} · r=${p[1].toLocaleString('pt-BR')}</option>`).join('') +
+    `</optgroup><optgroup label="Outros candidatos da Missão">` + others.map(i => `<option value="${i}">${esc(candLabel(i,true))}</option>`).join('') + `</optgroup>`;
+  S.ca = a; S.cb = +selB.value;
+}
+selA.onchange = () => { fillB(); render(); };
+selB.onchange = () => { S.cb = +selB.value; render(); };
+
+// ---------- render ----------
+function list(title, rows){
+  return `<div class="card"><h2>${title}</h2><div class="list">` + rows.map((r,k)=>
+    `<button class="row" data-${r.kind}="${r.id}"><span class="n">${k+1}</span><span class="t">${esc(r.t)}<small>${esc(r.s||'')}</small></span><span class="num">${r.a}</span><span class="num m">${r.b}</span></button>`).join('') + `</div></div>`;
+}
+function bindRows(){
+  document.querySelectorAll('#side [data-loc]').forEach(b => b.onclick = () => flyTo(+b.dataset.loc));
+  document.querySelectorAll('#side [data-mun]').forEach(b => b.onclick = () => flyMun(+b.dataset.mun));
+}
+function locPopup(i, extra){
+  const l = LOCS[i];
+  return `<div class="pp"><b>${esc(l[3])}</b><br>${esc(D.muns[l[2]])}${l[4]?' · '+esc(l[4]):''} · Zona ${l[10]}<br>${fmt(l[5])} eleitores${extra}</div>`;
+}
+function topMissao(i, cargo){
+  const ids = missaoIds(cargo).filter(ci => vec(ci)[i] > 0).sort((a,b)=>vec(b)[i]-vec(a)[i]).slice(0,5);
+  if (!ids.length) return '';
+  return '<table>' + ids.map(ci => `<tr><td>${esc(C[ci].nm)}</td><td class="num">${fmt(vec(ci)[i])}</td></tr>`).join('') + '</table>';
+}
+
+function renderDist(){
+  const cargo = S.cargo;
+  const ids = S.cand==='all' ? missaoIds(cargo) : [+S.cand];
+  const v = sumVec(ids), w = validVec(cargo);
+  const p = new Float64Array(NL); for (let i=0;i<NL;i++) p[i] = w[i]>=30 ? v[i]/w[i] : 0;
+  const val = S.metric==='v' ? v : p;
+  const mx = quant(Array.from(val), .985);
+  heat.setLatLngs(Array.from(val).map((x,i)=> x>0 ? [LOCS[i][0], LOCS[i][1], Math.min(x/mx,1)] : null).filter(Boolean));
+  heat.setOptions({max:1});
+  const tot = v.reduce((a,b)=>a+b,0), wt = w.reduce((a,b)=>a+b,0);
+  const nloc = v.filter(x=>x>0).length;
+  const mv = new Float64Array(D.muns.length), mw = new Float64Array(D.muns.length);
+  for (let i=0;i<NL;i++){ mv[LOCS[i][2]]+=v[i]; mw[LOCS[i][2]]+=w[i]; }
+  const nmun = Array.from(mv).filter(x=>x>0).length;
+  const name = S.cand==='all' ? `Missão · ${cargo==='all'?'deputados':CN[cargo]}` : C[+S.cand].nm;
+  document.getElementById('kpis').innerHTML = [
+    [fmt(tot), `votos · ${esc(name)}`], [pct(tot/wt), 'dos votos válidos em SP'],
+    [fmt(nloc), `de ${fmt(NL)} locais com voto`], [fmt(nmun), `de ${D.muns.length} municípios com voto`]
+  ].map(k=>`<div class="kpi"><b>${k[0]}</b><small>${k[1]}</small></div>`).join('');
+  document.getElementById('legend').innerHTML = `<span class="lab">${S.metric==='v'?'Votos por local':'% dos válidos no local'}</span><div class="ramp"></div><div class="ramp-l"><span>baixo</span><span>${S.metric==='v'?fmt(mx)+'+':pct(mx,1)+'+'}</span></div>`;
+  const acc = css('--accent'); const rmax = Math.sqrt(quant(Array.from(v), .995));
+  dotSpecs = []; for (let i=0;i<NL;i++) if (v[i]>0) dotSpecs.push({i, col:acc, r: 2.5 + 9*Math.min(Math.sqrt(v[i])/rmax,1),
+    pop:()=>locPopup(i, `<br><b>${fmt(v[i])}</b> votos · ${pct(w[i]?v[i]/w[i]:0)} dos válidos${S.cand==='all'?topMissao(i,cargo):''}`)});
+  drawDots();
+  const ms = Array.from(mv).map((x,m)=>({m,x,p:mw[m]?x/mw[m]:0})).filter(o=>o.x>0);
+  const tm = ms.slice().sort((a,b)=>S.metric==='v'?b.x-a.x:b.p-a.p).slice(0,12);
+  const tl = Array.from(val).map((x,i)=>({i,x})).filter(o=>o.x>0 && (S.metric==='v' || w[o.i]>=100)).sort((a,b)=>b.x-a.x).slice(0,15);
+  document.getElementById('side').innerHTML =
+    list(`Municípios ${S.metric==='v'?'com mais votos':'com maior % dos válidos'}`, tm.map(o=>({kind:'mun',id:o.m,t:D.muns[o.m],s:'',a:fmt(o.x),b:pct(o.p)}))) +
+    list(`Escolas ${S.metric==='v'?'com mais votos':'com maior % (≥100 válidos)'}`, tl.map(o=>({kind:'loc',id:o.i,t:LOCS[o.i][3],s:D.muns[LOCS[o.i][2]]+(LOCS[o.i][4]?' · '+LOCS[o.i][4]:''),a:fmt(v[o.i]),b:pct(w[o.i]?v[o.i]/w[o.i]:0)})));
+  bindRows();
+}
+
+function renderComp(){
+  const a = S.ca, b = S.cb, A = C[a], B = C[b];
+  const va = vec(a), vb = vec(b), wa = validVec(A.c), wb = validVec(B.c);
+  const pa = new Float64Array(NL), pb = new Float64Array(NL);
+  for (let i=0;i<NL;i++){ pa[i] = wa[i]>=30 ? va[i]/wa[i] : 0; pb[i] = wb[i]>=30 ? vb[i]/wb[i] : 0; }
+  // correlation over locais with enough votes
+  let n=0, sa=0, sb=0, saa=0, sbb=0, sab=0;
+  for (let i=0;i<NL;i++) if (wa[i]>=30 && wb[i]>=30){ n++; sa+=pa[i]; sb+=pb[i]; saa+=pa[i]*pa[i]; sbb+=pb[i]*pb[i]; sab+=pa[i]*pb[i]; }
+  const r = (n*sab - sa*sb) / Math.sqrt((n*saa-sa*sa)*(n*sbb-sb*sb) || 1);
+  let ov = 0, both = 0;
+  for (let i=0;i<NL;i++){ ov += Math.min(va[i]/A.v, vb[i]/B.v); if (va[i]>0 && vb[i]>0) both++; }
+  const qa = quant(Array.from(pa), .98), qb = quant(Array.from(pb), .98);
+  const na = new Float64Array(NL), nb = new Float64Array(NL), s = new Float64Array(NL);
+  for (let i=0;i<NL;i++){ na[i]=Math.min(pa[i]/qa,1); nb[i]=Math.min(pb[i]/qb,1); s[i]=Math.min(na[i],nb[i]); }
+  const val = S.cmode==='both' ? s : S.cmode==='a' ? na : nb;
+  heat.setLatLngs(Array.from(val).map((x,i)=> x>0.02 ? [LOCS[i][0], LOCS[i][1], x] : null).filter(Boolean));
+  heat.setOptions({max:1});
+  const ca = css('--a'), cb = css('--b'), cboth = css('--both');
+  const cat = i => (na[i]>=.25 && nb[i]>=.25) ? 'both' : (na[i]>=nb[i] ? 'a' : 'b');
+  dotSpecs = [];
+  for (let i=0;i<NL;i++){ const m = Math.max(na[i],nb[i]); if (m < .08) continue;
+    const k = cat(i); dotSpecs.push({i, col: k==='both'?cboth:k==='a'?ca:cb, r: 2.5 + 8*m,
+      pop:()=>locPopup(i, `<table><tr><td>${esc(A.nm)}</td><td class="num">${fmt(va[i])}</td><td class="num">${pct(pa[i])}</td></tr><tr><td>${esc(B.nm)}</td><td class="num">${fmt(vb[i])}</td><td class="num">${pct(pb[i])}</td></tr></table>`)}); }
+  drawDots();
+  const lvl = r>=.6 ? ['hi','Forte'] : r>=.35 ? ['md','Moderada'] : ['','Fraca'];
+  document.getElementById('kpis').innerHTML = [
+    [r.toLocaleString('pt-BR',{maximumFractionDigits:2}), `correlação entre os % por escola <span class="pill ${lvl[0]}">${lvl[1]}</span>`],
+    [pct(ov,1), 'sobreposição geográfica dos votos'],
+    [fmt(both), 'escolas com voto nos dois'],
+    [fmt(n), 'escolas comparadas (≥30 válidos)']
+  ].map(k=>`<div class="kpi"><b>${k[0]}</b><small>${k[1]}</small></div>`).join('');
+  document.getElementById('legend').innerHTML = `<span class="lab">${S.cmode==='both'?'Onde A e B são fortes juntos':S.cmode==='a'?'Força de A':'Força de B'}</span><div class="ramp"></div><div class="ramp-l"><span>fraco</span><span>forte</span></div><div class="dots"><span><i style="background:${ca}"></i>A</span><span><i style="background:${cb}"></i>B</span><span><i style="background:${cboth}"></i>ambos</span></div>`;
+  const top = Array.from(s).map((x,i)=>({i,x})).filter(o=>o.x>0 && wa[o.i]>=100).sort((p,q)=>q.x-p.x).slice(0,12);
+  document.getElementById('side').innerHTML =
+    `<div class="card"><h2>Votação por escola</h2><div class="who"><span><i style="background:${ca}"></i>A · ${esc(A.nm)} (${CN[A.c]}, ${fmt(A.v)})</span><span><i style="background:${cb}"></i>B · ${esc(B.nm)} (${esc(B.par)}, ${CN[B.c]}, ${fmt(B.v)})</span></div>
+     <canvas id="scatter" aria-label="Dispersão: % de A versus % de B em cada escola"></canvas>
+     <p class="note">Cada ponto é uma escola. Pontos subindo juntos na diagonal indicam que os dois crescem nos mesmos lugares, o padrão de uma dobradinha. O voto é secreto: isso é um indício geográfico, não prova de que foram os mesmos eleitores.</p></div>` +
+    list('Escolas onde os dois foram fortes', top.map(o=>({kind:'loc',id:o.i,t:LOCS[o.i][3],s:D.muns[LOCS[o.i][2]],a:pct(pa[o.i],1),b:pct(pb[o.i],1)})));
+  bindRows();
+  drawScatter(pa, pb, wa, wb, qa, qb, cat, {ca, cb, cboth});
+}
+function drawScatter(pa, pb, wa, wb, qa, qb, cat, col){
+  const cv = document.getElementById('scatter'), dpr = devicePixelRatio||1;
+  const W = cv.clientWidth, H = cv.clientHeight; cv.width = W*dpr; cv.height = H*dpr;
+  const g = cv.getContext('2d'); g.scale(dpr,dpr);
+  const m = {l:44,r:8,t:8,b:28}, xm = qa*1.25, ym = qb*1.25;
+  const X = x => m.l + Math.min(x/xm,1)*(W-m.l-m.r), Y = y => H-m.b - Math.min(y/ym,1)*(H-m.t-m.b);
+  g.font = `11px ${css('--font-m')}`; g.fillStyle = css('--muted'); g.strokeStyle = css('--line'); g.lineWidth = 1;
+  for (let k=0;k<=4;k++){
+    const x = m.l + k/4*(W-m.l-m.r), y = H-m.b - k/4*(H-m.t-m.b);
+    g.beginPath(); g.moveTo(x,m.t); g.lineTo(x,H-m.b); g.moveTo(m.l,y); g.lineTo(W-m.r,y); g.stroke();
+    g.textAlign='center'; g.fillText(pct(xm*k/4,1), x, H-m.b+14);
+    g.textAlign='right'; g.fillText(pct(ym*k/4,1), m.l-4, y+4);
+  }
+  g.textAlign='right'; g.fillText('% A →', W-m.r, H-2); g.textAlign='left'; g.fillText('% B ↑', 2, 10);
+  const colors = {a:col.ca, b:col.cb, both:col.cboth};
+  g.globalAlpha = .45;
+  for (let i=0;i<NL;i++){ if (wa[i]<30 || wb[i]<30 || (pa[i]===0 && pb[i]===0)) continue;
+    g.fillStyle = colors[cat(i)]; g.beginPath(); g.arc(X(pa[i]), Y(pb[i]), 1.8, 0, 6.283); g.fill(); }
+  g.globalAlpha = 1;
+}
+function render(){ if (S.mode==='dist') renderDist(); else renderComp(); }
+
+fillCand(); fillB();
+let m0 = 'dist'; try{ m0 = localStorage.getItem('missao-mode') || 'dist'; }catch(e){}
+setMode(m0);
+addEventListener('resize', () => { if (S.mode==='comp') render(); });
+})();
+</script>
