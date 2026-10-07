@@ -18,7 +18,13 @@ for c in ('6', '7'):
             if p['n'] == '14':
                 for x in p['cand']:
                     st[(c, x['n'])] = (x['nmu'], x['st'], int(x['vap']))
-cargos = sorted({k[3] for k in missao}, key=lambda c: ['6', '7', '3', '5', '1'].index(c))
+# Presidente (Renan Santos) – situação a partir do resultado oficial em SP
+_p = json.load(open(os.path.join(D, 'sp-c0001.json'), encoding='utf-8'))
+for a in _p['carg'][0]['agr']:
+    for p in a['par']:
+        for x in p['cand']:
+            if x['n'] == '14': st[('1', '14')] = (x['nmu'], x['st'] or 'Não eleito', int(x['vap']))
+cargos = sorted({k[3] for k in missao}, key=lambda c: ['1', '6', '7', '5', '3'].index(c))
 tot_c = collections.Counter(); tot_cn = collections.Counter()
 for k, v in missao.items():
     tot_c[k[3]] += v; tot_cn[(k[3], k[4])] += v
@@ -30,7 +36,7 @@ cands = []
 for c in cargos:
     for (cc, n), v in sorted(tot_cn.items(), key=lambda x: -x[1]):
         if cc != c: continue
-        if len(n) == 2:
+        if len(n) == 2 and c != '1':
             nm, s = 'Voto de legenda (14)', 'Legenda'
         else:
             nm, s = (st.get((c, n), (names[(c, n)], '', 0)))[:2]
@@ -82,7 +88,7 @@ ws['A3'] = 'Números em azul = dados do TSE; em preto = fórmulas. Linhas em azu
 hdr(ws, 5, ['Cargo', 'Votos da Missão', 'Votos válidos em SP', '% dos válidos', 'Votos nominais', 'Votos de legenda'])
 r = 6
 for c in cargos:
-    leg = tot_cn.get((c, '14'), 0)
+    leg = 0 if c == '1' else tot_cn.get((c, '14'), 0)
     vals = [CARGO_NM[c], tot_c[c], valid_c[c], f'=IFERROR(B{r}/C{r},0)', f'=B{r}-F{r}', leg]
     for i, v in enumerate(vals):
         x = ws.cell(r, 1 + i, v); x.font = blue if i in (1, 2, 5) else base

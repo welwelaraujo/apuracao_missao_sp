@@ -17,7 +17,7 @@ lix = {k: i for i, k in enumerate(locs)}
 NLc = len(locs)
 muns = sorted({(LOC.get(k) or {}).get('mun') or A['locinfo'].get(k, ('?',))[0] for k in locs})
 midx = {m: i for i, m in enumerate(muns)}
-W = {c: np.zeros(NLc) for c in ('6', '7', '5')}
+W = {c: np.zeros(NLc) for c in ('6', '7', '5', '1')}
 for k, v in valid.items():
     if k[3] in W: W[k[3]][lix[k[:3]]] += v
 
@@ -31,14 +31,14 @@ for c in ('6', '7'):
     M = np.zeros((NLc, len(nums)), dtype=np.float32)
     np.add.at(M, (gc.li.values, gc.NR_VOTAVEL.map(ci).values), gc.QT_VOTOS.values)
     MAT[c], COLS[c] = M, [str(n) for n in nums]
-# Missão senator vector (cargo 5) from agg.pkl
-sen = np.zeros(NLc)
+# Missão: Senado (144) e Presidente (14) a partir de agg.pkl
+MV = {('5', '144'): np.zeros(NLc), ('1', '14'): np.zeros(NLc)}
 for k, v in missao.items():
-    if k[3] == '5' and len(k[4]) == 3: sen[lix[k[:3]]] += v
+    if (k[3], k[4]) in MV: MV[(k[3], k[4])][lix[k[:3]]] += v
 
 
 def vec(c, n):
-    if c == '5': return sen if n == '144' else np.zeros(NLc)
+    if c in ('1', '5'): return MV.get((c, n), np.zeros(NLc))
     return MAT[c][:, COLS[c].index(n)].astype(float)
 
 
@@ -69,7 +69,7 @@ def partners(c, n, k=6):
 # Missão candidates + partners
 PART = {}
 for x in cands:
-    if x['c'] in ('6', '7', '5') and len(x['n']) > 2 and x['v'] >= 1000:
+    if x['c'] in ('6', '7', '5', '1') and (len(x['n']) > 2 or x['c'] == '1') and x['v'] >= 1000:
         PART[(x['c'], x['n'])] = partners(x['c'], x['n'])
         print('partners', x['c'], x['n'], x['nm'], [(INFO.get((p[0], p[1]), {}).get('nm'), round(p[2], 2)) for p in PART[(x['c'], x['n'])][:3]])
 
@@ -79,13 +79,12 @@ page_c = []; pidx = {}
 def add(c, n, missao_flag):
     if (c, n) in pidx: return pidx[(c, n)]
     a = vec(c, n); nz = np.nonzero(a)[0]
-    if c == '5':
-        meta = dict(nm=st.get((c, n), (names.get((c, n), n),))[0] if False else names.get((c, n), n), par='MISSÃO', st='', v=int(a.sum()))
-        meta['nm'] = 'RICARDO SCHIAVETTO' if n == '144' else meta['nm']
-        meta['st'] = 'Não eleito'
+    if c in ('1', '5'):
+        nm_, st_ = {('5', '144'): ('RICARDO SCHIAVETTO', 'Não eleito')}.get((c, n)) or st.get((c, n), (names.get((c, n), n), ''))[:2]
+        meta = dict(nm=nm_, par='MISSÃO', st=st_, v=int(a.sum()))
     else:
         meta = INFO.get((c, n), dict(nm=names.get((c, n), n), par='?', st='', v=int(a.sum())))
-    if len(n) == 2: meta = dict(meta, nm='Voto de legenda (14)' if n == '14' else meta['nm'])
+    if len(n) == 2 and c != '1': meta = dict(meta, nm='Voto de legenda (14)' if n == '14' else meta['nm'])
     pidx[(c, n)] = len(page_c)
     page_c.append(dict(c=c, n=n, nm=meta['nm'], par=meta['par'], st=meta['st'], v=int(a.sum()), m=missao_flag,
                        i=[int(v) for v in np.diff(nz, prepend=0)], q=[int(a[i]) for i in nz]))
@@ -93,7 +92,7 @@ def add(c, n, missao_flag):
 
 
 for x in cands:
-    if x['c'] in ('6', '7', '5'): add(x['c'], x['n'], 1)
+    if x['c'] in ('6', '7', '5', '1'): add(x['c'], x['n'], 1)
 for key, ps in PART.items():
     for oc, on, _, _ in ps: add(oc, on, 0)
 partners_out = {str(pidx[key]): [[pidx[(oc, on)], round(r, 3), round(o, 3)] for oc, on, r, o in ps] for key, ps in PART.items()}
@@ -109,11 +108,11 @@ for k in locs:
         cc = cent.get(tse2ibge.get(k[0])) or (-23.55, -46.63)
         lat, lon, ap = cc[0], cc[1], 1; approx += 1
     out_locs.append([round(lat, 5), round(lon, 5), midx[li['mun']], li['nome'].strip(), (li['bairro'] or '').strip(),
-                     li['eleitores'], int(W['6'][lix[k]]), int(W['7'][lix[k]]), int(W['5'][lix[k]]), ap, int(k[1])])
+                     li['eleitores'], int(W['6'][lix[k]]), int(W['7'][lix[k]]), int(W['5'][lix[k]]), ap, int(k[1]), int(W['1'][lix[k]])])
 print('locais', len(out_locs), 'aproximados', approx, 'cands na página', len(page_c))
 
 DATA = dict(locs=out_locs, muns=muns, cands=page_c, partners=partners_out,
-            valid={c: int(W[c].sum()) for c in ('6', '7', '5')})
+            valid={c: int(W[c].sum()) for c in ('6', '7', '5', '1')})
 json.dump(DATA, open(os.path.join(OUTD, 'missao_data.json'), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
 
 

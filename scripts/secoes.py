@@ -1,9 +1,9 @@
 """Microdados por seção: votos da Missão por seção eleitoral, para o botão de download do mapa.
 
-Gera dados/secoes_c{cargo}.txt (uma linha por seção com voto na Missão) e dados/enderecos.json.
+Gera dados/secoes_c{cargo}.txt (cargos 1, 5, 6, 7) (uma linha por seção com voto na Missão) e dados/enderecos.json.
 Formato da linha: indice_local,nr_secao,votos_validos_secao,cand:votos|cand:votos...
 (indice_local e cand são posições nas listas locs e cands de dados/missao_data.json).
-Rodar depois de build_missao.py.
+Rodar depois de presidente.py e build_missao.py.
 """
 import zipfile, os, json, pickle, time
 import pandas as pd
@@ -34,7 +34,16 @@ val = pd.concat(val).groupby(level=list(range(5))).sum()
 mis = pd.concat(mis).groupby(['CD_MUNICIPIO', 'NR_ZONA', 'NR_LOCAL_VOTACAO', 'NR_SECAO', 'CD_CARGO', 'NR_VOTAVEL']).QT_VOTOS.sum().reset_index()
 mis = mis[mis.QT_VOTOS > 0]
 
-for cargo in (5, 6, 7):
+# Presidente (eleição 6257): seções de SP extraídas por presidente.py
+P = pd.read_pickle(os.path.join(D, 'presidente_sp.pkl'))
+for c in ('CD_MUNICIPIO', 'NR_ZONA', 'NR_LOCAL_VOTACAO', 'NR_SECAO', 'CD_CARGO', 'NR_VOTAVEL'):
+    P[c] = P[c].astype(int)
+kk = ['CD_MUNICIPIO', 'NR_ZONA', 'NR_LOCAL_VOTACAO', 'NR_SECAO', 'CD_CARGO']
+val = pd.concat([val, P.groupby(kk).QT_VOTOS.sum()])
+pm = P[P.NR_VOTAVEL == 14].groupby(kk + ['NR_VOTAVEL']).QT_VOTOS.sum().reset_index()
+mis = pd.concat([mis, pm[pm.QT_VOTOS > 0]])
+
+for cargo in (1, 5, 6, 7):
     mc = mis[mis.CD_CARGO == cargo]
     lines = []
     for (mu, z, l, s), g in mc.groupby(['CD_MUNICIPIO', 'NR_ZONA', 'NR_LOCAL_VOTACAO', 'NR_SECAO']):

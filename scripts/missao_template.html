@@ -97,7 +97,7 @@ footer p{margin:0;max-width:110ch}
   <section class="controls" id="c-dist">
     <div class="ctl"><span class="lab">Cargo</span>
       <div class="seg" id="cargo">
-        <button data-v="6" aria-pressed="true">Dep. Federal</button><button data-v="7" aria-pressed="false">Dep. Estadual</button><button data-v="5" aria-pressed="false">Senado</button><button data-v="all" aria-pressed="false">Deputados (ambos)</button>
+        <button data-v="1" aria-pressed="false">Presidente</button><button data-v="6" aria-pressed="true">Dep. Federal</button><button data-v="7" aria-pressed="false">Dep. Estadual</button><button data-v="5" aria-pressed="false">Senado</button><button data-v="all" aria-pressed="false">Deputados (ambos)</button>
       </div></div>
     <div class="ctl"><label for="cand">Candidato</label><select id="cand"></select></div>
     <div class="ctl"><span class="lab">Medida</span>
@@ -135,8 +135,8 @@ footer p{margin:0;max-width:110ch}
 const D = JSON.parse(document.getElementById('data').textContent);
 const GEO = JSON.parse(document.getElementById('geo').textContent);
 const LOCS = D.locs, NL = LOCS.length, C = D.cands;
-const CN = {'6':'Dep. Federal','7':'Dep. Estadual','5':'Senado'};
-const CNs = {'6':'F','7':'E','5':'S'};
+const CN = {'1':'Presidente','6':'Dep. Federal','7':'Dep. Estadual','5':'Senado'};
+const CNs = {'1':'P','6':'F','7':'E','5':'S'};
 const fmt = n => Math.round(n).toLocaleString('pt-BR');
 const pct = (x,d=2) => (x*100).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})+'%';
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
@@ -155,7 +155,7 @@ function vec(ci){
 }
 function validVec(cargo){
   const a = new Float64Array(NL);
-  for (let i=0;i<NL;i++){ const l=LOCS[i]; a[i] = cargo==='6'?l[6]:cargo==='7'?l[7]:cargo==='5'?l[8]:l[6]+l[7]; }
+  for (let i=0;i<NL;i++){ const l=LOCS[i]; a[i] = cargo==='6'?l[6]:cargo==='7'?l[7]:cargo==='5'?l[8]:cargo==='1'?l[11]:l[6]+l[7]; }
   return a;
 }
 function sumVec(ids){
@@ -218,7 +218,7 @@ function setMode(m){
 }
 tabD.onclick = () => setMode('dist'); tabC.onclick = () => setMode('comp');
 
-const candLabel = (ci, withCargo) => { const c = C[ci]; return `${withCargo?CNs[c.c]+' · ':''}${c.n.length>3||c.c==='5'?c.n+' · ':''}${c.nm}${c.m?'':' ('+c.par+')'} — ${fmt(c.v)}`; };
+const candLabel = (ci, withCargo) => { const c = C[ci]; return `${withCargo?CNs[c.c]+' · ':''}${c.n.length>3||c.c==='5'||c.c==='1'?c.n+' · ':''}${c.nm}${c.m?'':' ('+c.par+')'} — ${fmt(c.v)}`; };
 function fillCand(){
   const sel = document.getElementById('cand');
   const ids = missaoIds(S.cargo).sort((a,b)=>C[b].v-C[a].v);
@@ -229,12 +229,12 @@ function fillCand(){
 document.getElementById('cand').onchange = e => { S.cand = e.target.value; render(); };
 
 // comparison selects
-const missaoNamed = C.map((c,i)=>i).filter(i => C[i].m && C[i].n.length>2 && D.partners[i]).sort((a,b)=>C[b].v-C[a].v);
+const missaoNamed = C.map((c,i)=>i).filter(i => C[i].m && (C[i].n.length>2 || C[i].c==='1') && D.partners[i]).sort((a,b)=>C[b].v-C[a].v);
 const selA = document.getElementById('ca'), selB = document.getElementById('cb');
 selA.innerHTML = missaoNamed.map(i => `<option value="${i}">${esc(candLabel(i,true))}</option>`).join('');
 function fillB(){
   const a = +selA.value, ps = D.partners[a] || [];
-  const others = C.map((c,i)=>i).filter(i => C[i].m && i!==a && C[i].c!==C[a].c && C[i].n.length>2 && C[i].v>=300).sort((x,y)=>C[y].v-C[x].v);
+  const others = C.map((c,i)=>i).filter(i => C[i].m && i!==a && C[i].c!==C[a].c && (C[i].n.length>2 || C[i].c==='1') && C[i].v>=300).sort((x,y)=>C[y].v-C[x].v);
   selB.innerHTML = `<optgroup label="Sugeridos: votação mais parecida (correlação)">` +
     ps.map(p => `<option value="${p[0]}">${esc(candLabel(p[0],true))} · r=${p[1].toLocaleString('pt-BR')}</option>`).join('') +
     `</optgroup><optgroup label="Outros candidatos da Missão">` + others.map(i => `<option value="${i}">${esc(candLabel(i,true))}</option>`).join('') + `</optgroup>`;
