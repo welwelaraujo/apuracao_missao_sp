@@ -14,6 +14,8 @@ Mapa interativo dos votos do partido Missão (14) em cada local de votação (es
 
   Para cada candidato da Missão com pelo menos 1.000 votos, o mapa sugere os candidatos do outro cargo, de qualquer partido, com votação mais parecida.
 
+- **Microdados**: o botão "Baixar CSV por seção" baixa os votos do filtro atual (cargo e candidato, ou a Missão inteira) por seção eleitoral. Cada linha traz município, zona, seção, local de votação, endereço, bairro, candidato, votos e votos válidos da seção. O CSV usa `;` como separador e abre direto no Excel. O download só funciona na versão publicada (GitHub Pages), não abrindo o arquivo localmente.
+
 Correlação alta é um indício geográfico, não prova. O voto é secreto, então não dá para afirmar que foram os mesmos eleitores.
 
 ## Arquivos
@@ -23,6 +25,8 @@ Correlação alta é um indício geográfico, não prova. O voto é secreto, ent
 | `index.html` | O mapa, com os dados embutidos. É a página publicada no GitHub Pages. |
 | `dados/votacao_missao_sp_2026.xlsx` | Planilha com as abas Resumo, Por município, Por local de votação e Possíveis dobradinhas. |
 | `dados/missao_data.json` | Dados usados pelo mapa: locais, votos por candidato e parceiros sugeridos. |
+| `dados/secoes_c5.txt`, `secoes_c6.txt`, `secoes_c7.txt` | Votos da Missão por seção (Senado, Dep. Federal, Dep. Estadual), usados pelo botão de microdados. |
+| `dados/enderecos.json` | Endereço de cada local de votação. |
 | `dados/sp_mun_small.geojson` | Contornos dos municípios de SP (IBGE, simplificado). |
 | `scripts/` | Pipeline de processamento. |
 
@@ -36,6 +40,7 @@ python scripts/locais.py          # coordenadas e eleitorado de cada local de vo
 python scripts/agg.py             # votos da Missão e votos válidos por local (~2 min)
 python scripts/agg2.py            # votos de todos os candidatos a deputado por local
 python scripts/build_missao.py    # análise de dobradinhas, dados do mapa e planilha
+python scripts/secoes.py          # microdados por seção para o download
 python scripts/build_html.py      # gera o index.html
 ```
 

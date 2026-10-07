@@ -32,6 +32,10 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .seg button{padding:5px 10px;font-size:13px}
 select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 8px;max-width:min(380px,82vw)}
 input[type=range]{accent-color:var(--accent);width:120px}
+.dl{margin-left:auto}
+.btn{font:inherit;font-weight:600;font-size:13px;color:var(--surface);background:var(--accent);border:0;border-radius:6px;padding:7px 14px;cursor:pointer}
+.btn:hover{filter:brightness(1.08)} .btn:disabled{opacity:.6;cursor:progress}
+#dlmsg{color:var(--muted);font-size:11.5px;max-width:240px}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
 .kpi b{display:block;font-family:var(--font-m);font-weight:500;font-size:22px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
@@ -96,6 +100,7 @@ footer{color:var(--muted);font-size:11.5px}
     <div class="ctl"><span class="lab">Medida</span>
       <div class="seg" id="metric"><button data-v="v" aria-pressed="true">Votos</button><button data-v="p" aria-pressed="false">% dos válidos</button></div></div>
     <div class="ctl"><label for="rad">Raio do calor</label><input type="range" id="rad" min="8" max="40" value="18"></div>
+    <div class="ctl dl"><span class="lab">Microdados</span><button id="dl" class="btn" type="button">Baixar CSV por seção</button><small id="dlmsg" aria-live="polite"></small></div>
   </section>
 
   <section class="controls" id="c-comp" hidden>
@@ -349,6 +354,44 @@ function drawScatter(pa, pb, wa, wb, qa, qb, cat, col){
   g.globalAlpha = 1;
 }
 function render(){ if (S.mode==='dist') renderDist(); else renderComp(); }
+
+// ---------- microdados por seção (CSV) ----------
+const dlBtn = document.getElementById('dl'), dlMsg = document.getElementById('dlmsg');
+const slug = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const q = v => { const s = String(v); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s; };
+dlBtn.onclick = async () => {
+  dlBtn.disabled = true; dlMsg.textContent = 'Preparando arquivo…';
+  try {
+    const cargos = S.cargo==='all' ? ['6','7'] : [S.cargo];
+    const want = S.cand==='all' ? null : +S.cand;
+    const end = await (await fetch('dados/enderecos.json')).json();
+    const out = ['Município;Zona;Seção;Local de votação;Endereço;Bairro;Cargo;Número;Candidato;Situação;Votos;Votos válidos na seção;% dos válidos na seção'];
+    let n = 0, tot = 0;
+    for (const cargo of cargos){
+      const r = await fetch(`dados/secoes_c${cargo}.txt`); if (!r.ok) throw new Error(r.status);
+      for (const line of (await r.text()).split('\n')){
+        if (!line) continue;
+        const [li, sec, val, pairs] = line.split(','); const l = LOCS[+li];
+        for (const p of pairs.split('|')){
+          const [ci, v] = p.split(':').map(Number);
+          if (want !== null && ci !== want) continue;
+          const c = C[ci];
+          out.push([D.muns[l[2]], l[10], sec, l[3], end[+li], l[4], CN[cargo], c.n, c.nm, c.st, v, val,
+            (+val ? (v/val*100).toFixed(2).replace('.',',') : '')].map(q).join(';'));
+          n++; tot += v;
+        }
+      }
+    }
+    const blob = new Blob(['﻿' + out.join('\r\n')], {type:'text/csv;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `missao_secoes_${S.cargo==='all'?'deputados':slug(CN[S.cargo])}_${want===null?'todos':slug(C[want].n+' '+C[want].nm)}.csv`;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+    dlMsg.textContent = `${fmt(n)} linhas · ${fmt(tot)} votos`;
+  } catch(e){
+    dlMsg.textContent = 'Não foi possível baixar os microdados aqui. Use a versão publicada no GitHub Pages.';
+  } finally { dlBtn.disabled = false; }
+};
 
 fillCand(); fillB();
 let m0 = 'dist'; try{ m0 = localStorage.getItem('missao-mode') || 'dist'; }catch(e){}
