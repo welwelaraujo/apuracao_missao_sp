@@ -736,7 +736,9 @@ input[type=range]{accent-color:var(--accent);width:120px}
 .leaflet-popup-content{margin:10px 12px;font-size:12.5px;line-height:1.4}
 .pp b{font-family:var(--font-d)} .pp table{border-collapse:collapse;margin-top:4px} .pp td{padding:1px 6px 1px 0} .pp td.num{padding-left:8px}
 .leaflet-bar a{background:var(--surface);color:var(--ink);border-color:var(--line)}
-footer{color:var(--muted);font-size:11.5px}
+footer{color:var(--muted);font-size:11.5px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 24px}
+footer p{margin:0;max-width:110ch}
+.credit{margin:3px 0 0;color:var(--muted);font-size:11.5px;opacity:.8;letter-spacing:.01em}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -745,6 +747,7 @@ footer{color:var(--muted);font-size:11.5px}
     <div>
       <h1>Votos da <span>Missão</span> em São Paulo</h1>
       <p class="sub">Eleições 2026 · 1º turno (04/10) · votação por local de votação (escola), TSE · <span id="nloc"></span> locais</p>
+      <p class="credit">Desenvolvido por Wellington Araujo Nogueira</p>
     </div>
     <div class="tabs" role="group" aria-label="Modo">
       <button id="t-dist" aria-pressed="true">Distribuição</button>
@@ -781,7 +784,7 @@ footer{color:var(--muted);font-size:11.5px}
     </div>
     <aside class="side" id="side"></aside>
   </div>
-  <footer>Fonte: TSE, dados abertos: votação por seção eleitoral SP 2026 e eleitorado por local de votação 2026; contornos municipais: IBGE. Aproxime o mapa (zoom ≥ 11) para ver cada escola como um círculo clicável. <span id="apx"></span></footer>
+  <footer><p>Fonte: TSE, dados abertos: votação por seção eleitoral SP 2026 e eleitorado por local de votação 2026; contornos municipais: IBGE. Aproxime o mapa (zoom ≥ 11) para ver cada escola como um círculo clicável. <span id="apx"></span></p></footer>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
